@@ -3,49 +3,69 @@ import runChat from "../config/gemini";
 
 export const Context = createContext();
 
-const ContextProvider = (props) => {
+const ContextProvider = ({ children }) => {
   const [input, setInput] = useState("");
   const [recentPrompt, setRecentPrompt] = useState("");
-  const [prevPrompts, setPrevPrompts] = useState([]);
+  const [resultData, setResultData] = useState("");
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [resultData, setResultData] = useState("");
+  const [prevPrompts, setPrevPrompts] = useState([]);
 
-  const onSent = async (prompt) => {
+  // Typing animation helper
+  const delayText = (index, nextWord) => {
+    setTimeout(() => {
+      setResultData((prev) => prev + nextWord);
+    }, 20 * index); // adjust speed (lower = faster)
+  };
+
+  // Main send function
+  const onSent = async () => {
+    if (!input.trim()) return;
+
+    setRecentPrompt(input);
+    setPrevPrompts([...prevPrompts, input]);
+    setShowResult(true);
+    setLoading(true);
+    setResultData("");
+
     try {
-      setLoading(true);
-      setShowResult(true);
+      const response = await runChat(input);
 
-      // use input if no prompt is passed
-      const response = await runChat(prompt || input);
+      // Clean markdown-like characters (###, ***, **)
+      const cleaned = response
+        .replace(/\*\*\*|###|\*\*/g, "")
+        .replace(/\*/g, "")
+        .replace(/#+/g, "")
+        .replace(/\n/g, "<br/>");
 
-      // update states
-      setResultData(response);
-      setRecentPrompt(prompt || input);
-      setPrevPrompts((prev) => [...prev, prompt || input]);
+      // 🧩 Typing animation — display word by word
+      const words = cleaned.split(" ");
+      words.forEach((word, i) => delayText(i, word + " "));
+
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error(error);
+      setResultData("⚠️ Error fetching response. Try again.");
     } finally {
-      setLoading(false);
+      // allow animation to finish before hiding loader
+      setTimeout(() => setLoading(false), 300);
+      setInput("");
     }
   };
 
-  const contextValue = {
-    prevPrompts,
-    setPrevPrompts,
-    onSent,
-    setRecentPrompt,
-    recentPrompt,
-    showResult,
-    loading,
-    resultData,
-    input,
-    setInput,
-  };
-
   return (
-    <Context.Provider value={contextValue}>
-      {props.children}
+    <Context.Provider
+      value={{
+        onSent,
+        recentPrompt,
+        showResult,
+        loading,
+        resultData,
+        setInput,
+        input,
+        prevPrompts,
+      }}
+    >
+      {children}
     </Context.Provider>
   );
 };
