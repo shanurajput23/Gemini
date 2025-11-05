@@ -1,8 +1,12 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import {assets} from '../../assets/assets'
 import '../Main/main.css'
+import { Context } from '../../Context/context'
 
 function Main() {
+    const {onSent,recentPrompts,showResult,loading,resultData,setInput,input}=useContext(Context)
+
+
   return (
     <div className="main">
         <div className="nav">
@@ -12,6 +16,9 @@ function Main() {
             <img src={assets.user_icon} alt="" />
         </div>
         <div className="main-container">
+            {!showResult
+            ?<>
+
             <div className="greet">
                 <p><span>Hello, Shanu.</span></p>
                 <p>How can I help you today?</p>
@@ -34,13 +41,19 @@ function Main() {
                     <img src={assets.code_icon} alt="" />
                 </div>
             </div>
+            </>
+            : <div className='result'>
+
+            </div>
+            
+            }
             <div className="main-bottom">
                 <div className="search-box">
-                    <input type="text" placeholder='Enter a Prompt here' />
+                    <input onChange={(e) => setInput(e.target.value)} value= {input} type="text" placeholder='Enter a Prompt here' />
                     <div>
                         <img src={assets.gallery_icon} alt="" />
                         <img src={assets.mic_icon} alt="" />
-                        <img src={assets.send_icon} alt="" />
+                        <img onClick={()=>onSent()} src={assets.send_icon} alt="" />
                     </div>
                 </div>
                 <p className='bottom-info'>
