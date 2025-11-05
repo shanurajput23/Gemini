@@ -11,34 +11,35 @@ const ContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [prevPrompts, setPrevPrompts] = useState([]);
 
-  // Typing animation helper
+  // 🕓 Typing animation helper
   const delayText = (index, nextWord) => {
     setTimeout(() => {
       setResultData((prev) => prev + nextWord);
-    }, 20 * index); // adjust speed (lower = faster)
+    }, 20 * index); // lower = faster
   };
 
-  // Main send function
-  const onSent = async () => {
-    if (!input.trim()) return;
+  // 🧠 Main send function (supports both input + direct prompts)
+  const onSent = async (promptText) => {
+    const finalPrompt = promptText || input; // use parameter if given (for cards)
+    if (!finalPrompt.trim()) return;
 
-    setRecentPrompt(input);
-    setPrevPrompts([...prevPrompts, input]);
+    setRecentPrompt(finalPrompt);
+    setPrevPrompts((prev) => [...prev, finalPrompt]);
     setShowResult(true);
     setLoading(true);
     setResultData("");
 
     try {
-      const response = await runChat(input);
+      const response = await runChat(finalPrompt);
 
-      // Clean markdown-like characters (###, ***, **)
+      // 🧹 Clean up markdown-like syntax
       const cleaned = response
         .replace(/\*\*\*|###|\*\*/g, "")
         .replace(/\*/g, "")
         .replace(/#+/g, "")
         .replace(/\n/g, "<br/>");
 
-      // 🧩 Typing animation — display word by word
+      // 🧩 Typing animation
       const words = cleaned.split(" ");
       words.forEach((word, i) => delayText(i, word + " "));
 

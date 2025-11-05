@@ -6,6 +6,11 @@ import { Context } from '../../Context/context'
 export default function Sidebar() {
     const[extended,setExtended]=useState(false)
     const {onSent,prevPrompts,setRecentPrompt}= useContext(Context)
+
+    const loadPrompt = async (prompt) => {
+        setRecentPrompt(prompt)
+        await onSent(prompt)
+    }
   return (
     <div className="sidebar">
         <div className="top">
@@ -20,7 +25,7 @@ export default function Sidebar() {
                 <p className="recent-title">Recent</p>
                 {prevPrompts.map((item,index) =>{
                     return(
-                        <div className="recent-entry">
+                        <div onClick ={()=>loadPrompt(item)}className="recent-entry">
                             <img src={assets.message_icon} alt="message-icon" />
                             <p>{item}</p>
                         </div>
